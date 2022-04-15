@@ -3,5 +3,26 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    <main class="container">
+        {% for product in Listings %}
+            <article class="row border rounded mb-3">
+                <div class=" border-end col-md-4 align-center">
+                    <img class="rounded m-2" height="200px" src="{{product.img_product}}"  alt="product.product_name">
+                </div>
+                <div class="col-md-8">
+                    <h3>{{ product.product_name }}</h3> 
+                    <p class="fs-6"><strong>Price: $</strong>
+                        {% if not product.bids.all %}
+                            {{ product.start_bit }}
+                        {% else %}
+                            {{ product.bids.last.bid }}
+                        {% endif %}
+                    </p>
+                    <p class="fs-6">{{ product.description }}</p>  
+                    <p class="lead fs-6">{{ product.timestamp }}</p>
+                </div>
+            </article>
+        {% endfor %}
+    </main>
+
 {% endblock %}
