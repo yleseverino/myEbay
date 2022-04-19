@@ -1,0 +1,10 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Listing {{ product }} {% if not whatlist%} <a href="{% url 'addwhatlist' product.pk %}" class="btn btn-primary btn-sm">Add to whatlist</a> {% else %} <a href="{% url 'rmwhatlist' product.pk %}" class="btn btn-secondary btn-sm">Remove from Whatlist</a> {% endif %}</h2> 
+
+    <div style="height: 300px;">
+        <img src="{{ product.img_product }}" alt="{{ product }}">
+    </div>
+
+{% endblock %}

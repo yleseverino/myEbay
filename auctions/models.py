@@ -44,4 +44,4 @@ class watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watchlist")
 
     def __str__(self):
-        return f"({self.product}) {self.comment} "
+        return f"({self.product}) {self.user} "

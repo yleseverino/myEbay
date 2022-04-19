@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect,render
 from django.urls import reverse
 
-from .models import User, auctions
+from .models import User, auctions, watchlist
 from .form import new_listing_form
 
 from django.contrib.auth.decorators import login_required
@@ -25,19 +25,41 @@ def new_listing(request):
             a = auctions(**form.cleaned_data, user=request.user)
             a.save()
             return redirect(reverse('index'))
-        
-        
-        
 
     return render(request, "auctions/create_listing.html",{
         "form": new_listing_form()
     })
 
+@login_required
+def addwhatlist(request, product_id):
+
+    product = auctions.objects.get(pk = product_id)
+    w = watchlist(product = product, user = request.user)
+    w.save()
+
+    return redirect(reverse('product', kwargs={'product_id':product_id} ))
+
+@login_required
+def rmwhatlist(request, product_id):
+    w = watchlist.objects.filter(product = product_id, user = request.user).delete()
+
+    return redirect(reverse('product', kwargs={'product_id':product_id} ))
+
 def product(request, product_id):
-    listing = auctions.objects.get(product_id)
-    print(listing)
-    return render(request, "auctions/index.html",{
-        'Listing' : listing
+    product = auctions.objects.get(pk = product_id)
+
+    if request.user.is_authenticated:
+        whatlist = watchlist.objects.filter(user = request.user, product = product)
+        
+        if whatlist:
+            return render(request, "auctions/product.html",{
+            'product' : product,
+            'whatlist' : whatlist
+    })
+
+    return render(request, "auctions/product.html",{
+        'product' : product,
+        'whatlist' : False
     })
 
 
