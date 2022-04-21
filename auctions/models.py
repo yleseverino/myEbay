@@ -40,7 +40,7 @@ class Comments(models.Model):
     
 
 class watchlist(models.Model):
-    product = models.ForeignKey(auctions, on_delete=models.CASCADE)
+    product = models.ForeignKey(auctions, on_delete=models.CASCADE, related_name="listing")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watchlist")
 
     def __str__(self):

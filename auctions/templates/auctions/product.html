@@ -1,10 +1,81 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Listing {{ product }} {% if not whatlist%} <a href="{% url 'addwhatlist' product.pk %}" class="btn btn-primary btn-sm">Add to whatlist</a> {% else %} <a href="{% url 'rmwhatlist' product.pk %}" class="btn btn-secondary btn-sm">Remove from Whatlist</a> {% endif %}</h2> 
 
-    <div style="height: 300px;">
-        <img src="{{ product.img_product }}" alt="{{ product }}">
+    {% if msg_error %}
+        <div class="alert alert-danger" role="alert">
+            {{ msg_error }}
+        </div>
+    {% endif %}
+
+    <h2 >Listing : {{ product }} </h2> 
+
+    {% if user.is_authenticated %}
+        {% if not whatlist %}
+            <a href="{% url 'addwhatlist' product.pk %}" class="btn btn-primary btn-sm">Add to whatlist</a> {% else %} <a href="{% url 'rmwhatlist' product.pk %}" class="btn btn-secondary btn-sm">Remove from Whatlist</a> 
+        {% endif %}
+        {% if product.user.id == user.id and not product.closed %}
+            <a href="{% url 'close_listing' product.pk %}" class="btn btn-success btn-sm">Close the Listing</a>
+        {% endif %}
+    {% endif %}
+
+    <div class="mt-2">
+        <img height="200px" src="{{ product.img_product }}" alt="{{ product }}">
     </div>
+
+    <p class="fs-5">
+        {{ product.description }}
+    </p>
+
+    <p class="h2">
+        $
+        {% if not product.bids.last %}
+                {{ product.start_bit }}
+        {% else %}
+                {{ product.bids.last.bid }}
+        {% endif %}
+        <p class="fs-6" >Number of bids {{ product.bids.count }} so far.
+
+            {% if user.is_authenticated and product.user.id != user.id %}
+                {% if product.bids.last.user.id == user.id and not product.closed %}
+                    Your bid is the currently one 🤞
+                {% elif product.bids.last.user.id == user.id and product.closed %}
+                    Your bid won the listing 🎉
+                {% endif %}
+            {% endif %}
+
+
+        </p>
+    </p>
+
+    {% if form and not product.closed and product.user.id != user.id %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" class="btn btn-primary mt-2" value="Submit bid">
+        </form>
+    {% endif %}
+    
+    <p class="h3" >Comments</p>
+    {% for comment in product.comments.all %}
+    <p>
+        <figure>
+            <blockquote class="blockquote">
+              <p>{{ comment.comment }}</p>
+            </blockquote>
+            <figcaption class="blockquote-footer">
+                {{ comment.user }}
+            </figcaption>
+          </figure>
+    </p>
+    {% endfor %}
+
+    {% if comment_form and not product.closed and product.user.id != user.id %}
+        <form action="{% url 'comment' product.pk %}" method="post">
+            {% csrf_token %}
+            {{ comment_form }}
+            <input type="submit" class="btn btn-primary mt-2" value="Comment">
+        </form>
+    {% endif %}
 
 {% endblock %}

@@ -4,15 +4,25 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect,render
 from django.urls import reverse
 
-from .models import User, auctions, watchlist
-from .form import new_listing_form
+from .models import User, auctions, watchlist, Bids
+from .form import new_listing_form, submit_bid_form, comment_form
 
 from django.contrib.auth.decorators import login_required
 
+from django.core.validators import MinValueValidator
+
 
 def index(request):
-    all_listing = auctions.objects.all()
+    all_listing = auctions.objects.filter(closed=False)
     return render(request, "auctions/index.html",{
+        'Listings' : all_listing
+    })
+
+@login_required
+def watchlist_view(request):
+    all_listing = watchlist.objects.filter(user= request.user)
+
+    return render(request, "auctions/watchlist.html",{
         'Listings' : all_listing
     })
 
@@ -40,6 +50,16 @@ def addwhatlist(request, product_id):
     return redirect(reverse('product', kwargs={'product_id':product_id} ))
 
 @login_required
+def close_listing(request, product_id):
+
+    product = auctions.objects.get(pk = product_id)
+    if product.user.id == request.user.id:
+        product.closed = True
+        product.save()
+
+    return redirect(reverse('product', kwargs={'product_id':product_id} ))
+
+@login_required
 def rmwhatlist(request, product_id):
     w = watchlist.objects.filter(product = product_id, user = request.user).delete()
 
@@ -50,16 +70,40 @@ def product(request, product_id):
 
     if request.user.is_authenticated:
         whatlist = watchlist.objects.filter(user = request.user, product = product)
+        if request.method == 'POST':
+            form = submit_bid_form(request.POST)
+            
+            if form.is_valid():
+
+                if product.bids.last():
+                    last_bid = product.bids.last().bid
+                else:
+                    last_bid = product.start_bit
+
+                if form.cleaned_data['bid'] > last_bid:
+
+                    a = Bids(bid = form.cleaned_data['bid'], product = product, user = request.user)
+                    a.save()
+                else:
+                    return render(request, "auctions/product.html",{
+                            'product' : product,
+                            'whatlist' : whatlist,
+                            'form' : submit_bid_form(),
+                            'msg_error' : 'Bid submited is smaller than the currently one',
+                            'comment_form': comment_form()
+                    })
+                    
+
         
-        if whatlist:
-            return render(request, "auctions/product.html",{
-            'product' : product,
-            'whatlist' : whatlist
+        return render(request, "auctions/product.html",{
+        'product' : product,
+        'whatlist' : whatlist,
+        'form' : submit_bid_form(),
+        'comment_form': comment_form()
     })
 
     return render(request, "auctions/product.html",{
-        'product' : product,
-        'whatlist' : False
+        'product' : product
     })
 
 

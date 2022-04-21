@@ -5,29 +5,29 @@
 
     <main class="container">
         {% for product in Listings %}
-            <a href="{% url 'product' product.id %}">
+            <a href="{% url 'product' product.product.id %}">
                 <article class="row border rounded mb-3">
                     <div class=" border-end col-md-4 align-center">
-                        <img class="rounded m-2" height="200px" src="{{product.img_product}}"  alt="product.product_name">
+                        <img class="rounded m-2" height="200px" src="{{product.product.img_product}}"  alt="product.product.product_name">
                     </div>
                     <div class="col-md-8">
-                        <h3>{{ product.product_name }} </h3> 
+                        <h3>{{ product.product.product_name }} </h3> 
                         <p class="fs-6"><strong>Price: $</strong>
-                            {% if not product.bids.all %}
-                                {{ product.start_bit }}
+                            {% if not product.product.bids.all %}
+                                {{ product.product.start_bit }}
                             {% else %}
-                                {{ product.bids.last.bid }}
+                                {{ product.product.bids.last.bid }}
                                 {% if user.is_authenticated %}
-                                    {% if product.bids.last.user.id == user.id and not product.closed %}
+                                    {% if product.product.bids.last.user.id == user.id and not product.product.closed %}
                                         Your bid is the currently one 🤞
-                                    {% elif product.bids.last.user.id == user.id and product.closed %}
+                                    {% elif product.product.bids.last.user.id == user.id and product.product.closed %}
                                         Your bid won the listing 🎉
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
                         </p>
-                        <p class="fs-6">{{ product.description }}</p>  
-                        <p class="lead fs-6">{{ product.timestamp }}</p>
+                        <p class="fs-6">{{ product.product.description }}</p>  
+                        <p class="lead fs-6">{{ product.product.timestamp }}</p>
                     </div>
                 </article>
             </a>
