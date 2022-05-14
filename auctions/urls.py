@@ -15,5 +15,6 @@ urlpatterns = [
     path("close_listing/<int:product_id>", views.close_listing, name="close_listing"),
     path("submit-bid", views.rmwhatlist, name="rmwhatlist"),
     path("new_listing", views.new_listing, name="new_listing"),
-    path("addwhatlist/<int:product_id>", views.comment_vw, name="comment")
+    path("all_listings", views.all_listening_vw, name="all_listing"),
+    path("comment/<int:product_id>", views.comment_endpoint, name="comment")
 ]

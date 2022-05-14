@@ -3,6 +3,28 @@
 {% block body %}
     <h2>Active Listings</h2>
 
+    <form class="m-3" method="post">
+        {% csrf_token %}
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+              <label for="category" class="col-form-label">Category</label>
+            </div>
+            <div class="col-auto">
+              <select name="category" id="category" class="form-select">
+                {% if not category_selected %}
+                    <option value="" disabled selected>Select a category</option>
+                {% endif %}
+                {% for category in categories %}
+                    <option {% if category_selected == category.0 %} selected {% endif %} value="{{ category.0 }}">{{ category.1 }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-auto">
+              <input type="submit" class="btn btn-secondary" value="submit">
+            </div>
+          </div>
+    </form>
+
     <main class="container">
         {% for product in Listings %}
             <a href="{% url 'product' product.id %}">

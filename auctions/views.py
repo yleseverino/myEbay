@@ -1,15 +1,14 @@
+from unicodedata import category
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect,render
 from django.urls import reverse
 
-from .models import User, auctions, watchlist, Bids
+from .models import User, auctions, watchlist, Bids, Comments
 from .form import new_listing_form, submit_bid_form, comment_form
 
 from django.contrib.auth.decorators import login_required
-
-from django.core.validators import MinValueValidator
 
 
 def index(request):
@@ -17,6 +16,26 @@ def index(request):
     return render(request, "auctions/index.html",{
         'Listings' : all_listing
     })
+
+def all_listening_vw(request):
+
+    categories = auctions().Categories.choices
+
+    if request.method == 'POST':
+        all_listing = auctions.objects.filter(category = request.POST['category'])
+        return render(request, "auctions/all_listing.html",{
+            'Listings' : all_listing,
+            'categories': categories,
+            'category_selected': int(request.POST['category'])
+        })
+
+    else:
+        all_listing = auctions.objects.all()
+        return render(request, "auctions/all_listing.html",{
+            'Listings' : all_listing,
+            'categories': categories
+        })
+
 
 @login_required
 def watchlist_view(request):
@@ -69,6 +88,7 @@ def product(request, product_id):
     product = auctions.objects.get(pk = product_id)
 
     if request.user.is_authenticated:
+        
         whatlist = watchlist.objects.filter(user = request.user, product = product)
         if request.method == 'POST':
             form = submit_bid_form(request.POST)
@@ -89,7 +109,7 @@ def product(request, product_id):
                             'product' : product,
                             'whatlist' : whatlist,
                             'form' : submit_bid_form(),
-                            'msg_error' : 'Bid submited is smaller than the currently one',
+                            'msg_error' : 'Bid submited is smaller than the currently one or smaller than the minimum bid',
                             'comment_form': comment_form()
                     })
                     
@@ -105,6 +125,14 @@ def product(request, product_id):
     return render(request, "auctions/product.html",{
         'product' : product
     })
+
+def comment_endpoint(request, product_id):
+
+    product = auctions.objects.get(pk = product_id)
+    c = Comments( product =  product, user = request.user, comment = request.POST['comment'])
+    c.save()
+
+    return redirect(reverse('product', kwargs={'product_id':product_id} ))
 
 
 def login_view(request):
@@ -125,7 +153,7 @@ def login_view(request):
             })
     else:
         return render(request, "auctions/login.html")
-
+    
 
 def logout_view(request):
     logout(request)
